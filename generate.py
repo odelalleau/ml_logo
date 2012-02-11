@@ -56,7 +56,7 @@ def main():
 
     # Compute density estimate.
     print 'Computing density estimates'
-    scale_factor = 0.1
+    scale_factor = 0.3
     density = numpy.zeros((sampled_logo.shape[0] * scale_factor,
                            sampled_logo.shape[1] * scale_factor))
     point = numpy.zeros(2)
@@ -97,20 +97,29 @@ def main():
 
     fig = pyplot.figure()
     ax = fig.gca(projection='3d')
+    ax.view_init(elev=75, azim=0)
+
+    # Undocumented feature to hide axes.
+    ax._axis3don = False
+
     X = numpy.arange(0, density.shape[0], 1)
     Y = numpy.arange(0, density.shape[1], 1)
     X, Y = numpy.meshgrid(X, Y)
     Z = density.T
+    Z[Z < 0.1] = 0
+    Z *= 0.3
     surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet,
-            linewidth=0, antialiased=False)
+            shade=True,
+            linewidth=0.1, antialiased=True)
     ax.set_zlim(-0.01, 1.01)
 
-    ax.zaxis.set_major_locator(LinearLocator(10))
-    ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+    #ax.zaxis.set_major_locator(LinearLocator(10))
+    #ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+    #fig.colorbar(surf, shrink=0.5, aspect=5)
 
-    fig.colorbar(surf, shrink=0.5, aspect=5)
+    #pyplot.show()
 
-    pyplot.show()
+    pyplot.savefig('logo.png', dpi=300)
 
     return 0
 
