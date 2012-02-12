@@ -9,12 +9,16 @@ import numpy
 
 
 def main():
+    reverse = True
+
     # Load Ubisoft logo.
     print 'Loading Ubisoft logo'
     ubi_logo = pyplot.imread('ubi_logo.png')
     # Convert to grayscale by averaging RGB components.
     ubi_logo_gray = ubi_logo[:, :, 0:3].mean(axis=2)
-    # Background should be white.
+    if reverse:
+        ubi_logo_gray = 1 - ubi_logo_gray
+    # Fill background.
     mask = ubi_logo[:, :, 3] <= 0
     ubi_logo_gray[mask] = 1
     # Display Ubisoft logo.
@@ -34,7 +38,7 @@ def main():
 
     # Sample pixels based on their weight.
     print 'Sampling pixels'
-    n_samples = 5000
+    n_samples = 10000
     seed = 1827
     rng = numpy.random.RandomState(seed)
     samples = rng.multinomial(n_samples, pixels[:, 2])
@@ -56,11 +60,11 @@ def main():
 
     # Compute density estimate.
     print 'Computing density estimates'
-    scale_factor = 0.4
+    scale_factor = 1
     density = numpy.zeros((sampled_logo.shape[0] * scale_factor,
                            sampled_logo.shape[1] * scale_factor))
     point = numpy.zeros(2)
-    sigma = 5
+    sigma = 8
     count = 0
     total = density.size
     for i in xrange(density.shape[0]):
@@ -95,26 +99,35 @@ def main():
     from matplotlib import cm
     from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
-    fig = pyplot.figure()
+    fig = pyplot.figure(figsize=(6, 6))
     ax = fig.gca(projection='3d')
     ax.view_init(elev=90, azim=0)
 
     # Undocumented feature to hide axes.
     ax._axis3don = False
 
-    X = numpy.arange(0, density.shape[0], 1)
-    Y = numpy.arange(0, density.shape[1], 1)
+    add_border = 0.3
+    X = numpy.arange(0, density.shape[0] * (1 + add_border))
+    Y = numpy.arange(0, density.shape[1] * (1 + add_border))
     X, Y = numpy.meshgrid(X, Y)
     Z = density.T
-    Z[Z < 0.05] = 0
-    Z *= 0.8
-    cmap = cm.jet
+    Z[Z < 0.02] = 0
+    #Z = 1 - Z
+    Z *= 0.5
+    new_Z = numpy.zeros(X.shape)
+    start_0 = density.shape[0] * add_border * 0.5
+    start_1 = density.shape[1] * add_border * 0.5
+    new_Z[start_0:start_0 + Z.shape[0], start_1:start_1 + Z.shape[1]] = Z
+    Z = new_Z
+    cmap = cm.Reds
     cmap = cm.gist_heat
+    cmap = cm.RdBu
+    cmap = cm.jet
     surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cmap,
             shade=True,
-            linewidth=0.1, antialiased=True)
-    ax.set_xlim(0, 62)
-    ax.set_ylim(0, 62)
+            linewidth=0, antialiased=True)
+    #ax.set_xlim(0, 62)
+    #ax.set_ylim(0, 62)
     ax.set_zlim(-0.01, 1.01)
 
     #ax.zaxis.set_major_locator(LinearLocator(10))
