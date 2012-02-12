@@ -11,7 +11,7 @@ import numpy
 def main():
     # Load Ubisoft logo.
     print 'Loading Ubisoft logo'
-    ubi_logo = pyplot.imread('/Users/delallea/Downloads/ubi.png')
+    ubi_logo = pyplot.imread('ubi_logo.png')
     # Convert to grayscale by averaging RGB components.
     ubi_logo_gray = ubi_logo[:, :, 0:3].mean(axis=2)
     # Background should be white.
@@ -34,7 +34,7 @@ def main():
 
     # Sample pixels based on their weight.
     print 'Sampling pixels'
-    n_samples = 3000
+    n_samples = 5000
     seed = 1827
     rng = numpy.random.RandomState(seed)
     samples = rng.multinomial(n_samples, pixels[:, 2])
@@ -56,7 +56,7 @@ def main():
 
     # Compute density estimate.
     print 'Computing density estimates'
-    scale_factor = 0.3
+    scale_factor = 0.4
     density = numpy.zeros((sampled_logo.shape[0] * scale_factor,
                            sampled_logo.shape[1] * scale_factor))
     point = numpy.zeros(2)
@@ -97,7 +97,7 @@ def main():
 
     fig = pyplot.figure()
     ax = fig.gca(projection='3d')
-    ax.view_init(elev=75, azim=0)
+    ax.view_init(elev=90, azim=0)
 
     # Undocumented feature to hide axes.
     ax._axis3don = False
@@ -106,11 +106,15 @@ def main():
     Y = numpy.arange(0, density.shape[1], 1)
     X, Y = numpy.meshgrid(X, Y)
     Z = density.T
-    Z[Z < 0.1] = 0
-    Z *= 0.3
-    surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet,
+    Z[Z < 0.05] = 0
+    Z *= 0.8
+    cmap = cm.jet
+    cmap = cm.gist_heat
+    surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cmap,
             shade=True,
             linewidth=0.1, antialiased=True)
+    ax.set_xlim(0, 62)
+    ax.set_ylim(0, 62)
     ax.set_zlim(-0.01, 1.01)
 
     #ax.zaxis.set_major_locator(LinearLocator(10))
